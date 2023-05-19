@@ -6,12 +6,12 @@ import pygame
 import gymnasium as gym
 from gymnasium import spaces
 
-# from environment.propellant_tank import Propellant_Tank
-# from environment.orbit_propagator import Orbit_Propagator
-# from environment.thruster import Thruster
-# from environment.renderer import Renderer
-# from environment.battery import Battery
-# from environment.DataClass import Data
+#from environment.propellant_tank import Propellant_Tank
+#from environment.orbit_propagator import Orbit_Propagator
+#from environment.thruster import Thruster
+#from environment.renderer import Renderer
+#from environment.battery import Battery
+#from environment.DataClass import Data
 
 from propellant_tank import Propellant_Tank
 from orbit_propagator import Orbit_Propagator
@@ -235,19 +235,17 @@ class Spacecraft(gym.Env):
         
 
     def _terminal(self):
+         terminal = False
+         if self.propellant_tank.current_mass <= 0:
+             terminal = True
+         if self.battery.current_energy <= 0:
+             terminal = True
+         if self.DataClass.current_data <= 0:
+             terminal = True
+         if np.linalg.norm(self.orbit_propagator.orb_com.r.value) <= 24622:
+             terminal = True
+         return terminal
 
-        terminal = False
-
-        # if self.propellant_tank.current_mass <= 0:
-        #     terminal = True
-        # if self.battery.current_energy <= 0:
-        #     terminal = True
-        # if self.DataClass.current_data <= 0:
-        #     terminal = True
-        # if np.linalg.norm(self.orbit_propagator.orb_com.r.value) <= 24622:
-        #     terminal = True
-
-        return terminal
 
     def _truncated(self):
         
@@ -267,6 +265,9 @@ class Spacecraft(gym.Env):
             self.renderer.render(self.com_orbit_points, self.obs_orbit_points, self.orbit_propagator.positions_com, self.orbit_propagator.positions_obs, self.comms)
         else:
             self.renderer.render(self.com_orbit_points, self.obs_orbit_points, self.orbit_propagator.positions_com[l-100:l], self.orbit_propagator.positions_obs[l-100:l], self.comms)
+
+
+
 
 
 if __name__ == "__main__":
