@@ -2,7 +2,7 @@
 TUM Science Hackathon 2023 - Autonomous Spacecraft Team 1
 
 Requirements:
-
+* Python 3.9 -- poliastro does not support Python 3.11 (yet)
 * alabaster 0.7.12
 * astropy 5.1
 * astroquery 0.4.6
