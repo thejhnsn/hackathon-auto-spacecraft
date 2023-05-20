@@ -21,7 +21,7 @@ comm = []
 time = []
 
 
-for k in population:
+for k in range(population):
     environments[k] = sc.Spacecraft()
     environments[k].reset()
 
@@ -56,7 +56,7 @@ input parameters:
 c = 0
 for t in count():
     c+= 1
-    for k in population:
+    for k in range(population):
         observation, reward, terminated, truncated, _ = environments[k].step(agents[k].predict(observation))
 
         done[k] = terminated or truncated
