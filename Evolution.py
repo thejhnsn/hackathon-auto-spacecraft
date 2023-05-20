@@ -66,7 +66,7 @@ for t in range(20):
 
     agents.sort()
     CurrentLeader = agents[population - 1]
-    print("And the winner has: ", CurrentLeader.get_fitness())
+    print("And the winner has: ", CurrentLeader.get_fitness(), " fitness")
     print("Standardabweichung", np.std(rewards))
     if(np.std(rewards) < 2):
         modifier = 0.1
@@ -89,10 +89,9 @@ for t in range(20):
         rewards[k] = 0
 
     generation += 1
-
-f = open("weights", "x") # create file
-# write best weights to file
-for i in range(len(CurrentLeader.get_weights())):
-    f.write(str(CurrentLeader.get_weights()[i]))
-    f.write("\n")
-f.close()
+    f = open("weights", "w")  # create file
+    # write best weights to file
+    for i in range(len(CurrentLeader.get_weights())):
+        f.write(str(CurrentLeader.get_weights()[i]))
+        f.write("\n")
+    f.close()
