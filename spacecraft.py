@@ -39,6 +39,7 @@ class Spacecraft(gym.Env):
 
     def __init__(self, render_mode = None):
         
+        self.position_distance_vector = 0.0
         self.propellant_tank   = Propellant_Tank(self.INITIAL_PROPELLANT_MASS)
         self.thruster          = Thruster()
         self.orbit_propagator  = Orbit_Propagator(self.COM_ORBIT, self.OBSERVER_ORBIT)
@@ -61,6 +62,7 @@ class Spacecraft(gym.Env):
         self.position_vector_y_com = []
         self.position_vector_x_obs = []
         self.position_vector_y_obs = []
+        self.position_distance = []
         self.time_vector = [0]
         self.data_sent = 0
         self.prop_used = 0
@@ -104,6 +106,8 @@ class Spacecraft(gym.Env):
         self.position_vector_y_com = [self.orbit_propagator.orb_com.r[1].value]
         self.position_vector_x_obs = [self.orbit_propagator.orb_obs.r[0].value]
         self.position_vector_y_obs = [self.orbit_propagator.orb_obs.r[1].value]
+        self.position_distance_vector = [np.sqrt((self.orbit_propagator.orb_com.r[0].value-self.orbit_propagator.orb_obs.r[0].value)**2 + (self.orbit_propagator.orb_com.r[1].value-self.orbit_propagator.orb_obs.r[1].value)**2)
+]
         self.time_vector = [0]
 
         return self.state, {}
@@ -161,6 +165,10 @@ class Spacecraft(gym.Env):
         self.position_vector_y_com.append(self.orbit_propagator.orb_com.r[1].value)
         self.position_vector_x_obs.append(self.orbit_propagator.orb_obs.r[0].value)
         self.position_vector_y_obs.append(self.orbit_propagator.orb_obs.r[1].value)
+
+        dist = np.sqrt((self.orbit_propagator.orb_com.r[0].value-self.orbit_propagator.orb_obs.r[0].value)**2 + (self.orbit_propagator.orb_com.r[1].value-self.orbit_propagator.orb_obs.r[1].value)**2)
+        self.position_distance_vector.append(dist)
+
         self.time_vector.append(self.time_vector[-1]+self.dt)
 
         if self.render_mode == "human":
@@ -273,7 +281,7 @@ class Spacecraft(gym.Env):
 if __name__ == "__main__":
     from itertools import count
     env = Spacecraft(render_mode = "human")
-    # env = Spacecraft()
+    #env = Spacecraft()
     env.reset()
     for t in count():
         observation, reward, terminated, truncated, _ = env.step(0)
