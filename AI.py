@@ -18,6 +18,12 @@ def __init__(self):
     self.aienv = gym.make('CartPole-v0').env
     self.aienv.reset()
 
+def getenv(self):
+    return self.env
+
+def getaienv(self):
+    return self.aienv
+
 
 
 def reset(self):
