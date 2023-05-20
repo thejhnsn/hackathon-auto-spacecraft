@@ -10,15 +10,15 @@ import tensorflow as tf
 
 population = 10
 
-agents = []
-environments = []
-rewards = []
+agents = [None] * population
+environments = [None] * population
+rewards = [None] * population
 
-battery = []
-done = []
-prop = []
-comm = []
-time = []
+battery = [None] * population
+done = [None] * population
+prop = [None] * population
+comm = [None] * population
+time = [None] * population
 
 
 for k in range(population):
@@ -26,7 +26,7 @@ for k in range(population):
     environments[k].reset()
 
     agents[k] = tf.keras.Sequential([
-        tf.keras.layers.Dense(64, activation='relu', input_shape=(9,)),
+        tf.keras.layers.Dense(64, activation='relu', input_shape=(7,)),
         tf.keras.layers.Dense(128, activation='relu'),
         tf.keras.layers.Dense(256, activation='relu'),
         tf.keras.layers.Dense(1, activation='softmax')  # give state from 0 to 3
@@ -57,13 +57,23 @@ c = 0
 for t in count():
     c+= 1
     for k in range(population):
-        observation, reward, terminated, truncated, _ = environments[k].step(agents[k].predict(observation))
+        if(t != 0):
+            listTemp = [environments[k].thrust_vector[-1], environments[k].position_vector_x_com[-1],environments[k].position_vector_y_com[-1],environments[k].data_sent,environments[k].prop_used,environments[k].en_used,environments[k].steps_to_truncate]
+        else:
+            listTemp = [0, 0, 0, 0, 0, 0, 0]
+        input_values = np.array(listTemp)
+        observation, reward, terminated, truncated, _ = environments[k].step(agents[k].predict(input_values))
+
+
 
         done[k] = terminated or truncated
         battery[k] = environments[k].battery.current_energy
         prop[k] = environments[k].propellant_tank.current_mass
         comm[k] = environments[k].DataClass.current_data
         time[k] = environments[k].time_vector[-1]
+
+
+
 
         if done[k]:
             rewards[k] = reward
