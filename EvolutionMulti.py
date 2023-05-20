@@ -1,4 +1,5 @@
 import threading
+import time
 from concurrent.futures import thread
 
 import numpy as np
@@ -6,11 +7,32 @@ import spacecraft as sc
 import NeuralNetwork as nn
 from concurrent.futures import ThreadPoolExecutor
 from torch.utils.hipify.hipify_python import bcolors as bc
+import matplotlib.pyplot as plt
+
+import keyboard
+
+def printthreads():
+    while(1):
+
+        while True:  # making a loop
+            try:  # used try so that if user pressed other than the given key error will not be shown
+                if keyboard.is_pressed('q'):  # if key 'q' is pressed
+                    for thread in threading.enumerate():
+                        print(bc.WARNING + f"{thread.getName()} is running" + bc.ENDC)
+                    time.sleep(1)
+                break  # finishing the loop
+            except:
+                break
 
 
-def run(c, pop, population):
+
+
+
+def run(c, pop, population, agents, environments, done, battery, prop, comm, timeArr,return_val):
     while done.count(True) != population:
-        for k in range(pop*population, (pop+1)*population):
+        fromval = pop*population
+        to = (pop+1)*population
+        for k in range(fromval, to):
             if done[k]:
                 continue
             if(c != 0):
@@ -41,15 +63,16 @@ def run(c, pop, population):
             timeArr[k] = environments[k].time_vector[-1]
             agents[k].add_fitness(reward)
             rewards[k] += reward
-
-           # if done[k]:
-            #    print(f"Thread: {threading.current_thread().name}  Generation: {t} AI number: {k} Numeber of steps: {c}  Energy: {battery[k]}, Propoltion Left: {prop[k]}, Comms: {comm[k]}, Time: {timeArr[k]}, Reward: {rewards[k]}, Fitness: {agents[k].get_fitness()} \n")
         c += 1
 
 
 
+maxes = []
+mins = []
 
-population = 16
+threadss = threading.Thread(target=printthreads, args=())
+threadss.start()
+population = 60
 generation = 0
 numthreads = 8
 #threadsArray = [0] * 8
@@ -70,28 +93,27 @@ for k in range(population):
 
     agents[k] = nn.NeuralNetwork(np.array([6, 128, 128, 128, 4]))
 
-for t in range(200):
+for t in range(20):
+
+
     c = 0
     print("Generation: ", t)
     #mul start
 
     threads = []
-    try:
-        for i in range(numthreads):
-            threads.append(threading.Thread(target=run, args=(0, i, (int)(population/numthreads))))
 
-        for i in threads:
-            i.start()
+    for i in range(numthreads):
+        return_val = [] * numthreads
 
-        for i in threads:
-            i.join()
+        threads.append(threading.Thread(target=run, args=(0, i, (int)(population/numthreads), agents, environments, done, battery, prop, comm, timeArr,return_val)))
+        threads[-1].setName(f"Calculating Thread {i}")
+        threads[-1].start()
 
 
+    for i in range(numthreads):
+        value = threads[i].join()
 
 
-
-    except:
-       print ("Error: unable to start thread")
 
 
 
@@ -103,7 +125,9 @@ for t in range(200):
     CurrentLeader = agents[population - 1]
     print("Standardabweichung", np.std(rewards))
     print("Max", rewards[population - 1])
+    maxes.append(rewards[population - 1])
     print("Min", rewards[0])
+    mins.append(rewards[0])
     if(np.std(rewards) < 2):
         modifier = 0.1
     else:
@@ -126,6 +150,10 @@ for t in range(200):
 
     generation += 1
 
+maxnp = np.array(maxes)
+minnp = np.array(mins)
+plt.plot(maxnp)
+plt.plot(minnp)
 f = open("weights", "x") # create file
 # write best weights to file
 for i in range(len(CurrentLeader.get_weights())):
