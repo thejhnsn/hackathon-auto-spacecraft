@@ -12,7 +12,7 @@ import tensorflow as tf
 import gym
 
 
-def __init__(self, initial_energy):
+def __init__(self):
     self.env = sc.Spacecraft()
     self.env.reset()
     self.aienv = gym.make('CartPole-v0').env
