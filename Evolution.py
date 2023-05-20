@@ -1,28 +1,22 @@
 import numpy as np
-from torch.utils.hipify.hipify_python import bcolors
-
 import spacecraft as sc
-from itertools import count
-import os
-import time
-import tensorflow as tf
 import NeuralNetwork as nn
+import threading
 
 
-population = 100
+population = 50
 generation = 0
-threads = population
+#threadsArray = [0] * 8
 
-agents = [None] * population
-environments = [None] * population
+agents = [nn.NeuralNetwork] * population
+environments = [sc.Spacecraft] * population
 rewards = [0.0] * population
 
-battery = [None] * population
+battery = [0] * population
 done = [False] * population
-prop = [None] * population
-comm = [None] * population
-timeArr = [None] * population
-
+prop = [0.0] * population
+comm = [0.0] * population
+timeArr = [0] * population
 
 for k in range(population):
     environments[k] = sc.Spacecraft()
@@ -30,25 +24,7 @@ for k in range(population):
 
     agents[k] = nn.NeuralNetwork(np.array([6, 128, 128, 128, 4]))
 
-"""
-input parameters:
-        self.thrust_vector = []
-
-        self.position_vector_x_com = []
-        self.position_vector_y_com = []
-        self.position_vector_x_obs = []
-        self.position_vector_y_obs = []
-
-        self.data_sent = 0
-        self.prop_used = 0
-        self.en_used = 0
-
-        self.steps_to_truncate = 0
-
-"""
-
-
-for t in range(1000):
+for t in range(20):
     c = 0
 
     while done.count(True) != population:
@@ -72,8 +48,8 @@ for t in range(1000):
                     max = temp[i]
                     index = i
 
-            if(index == 3 and environments[k].position_distance_vector[-1] > 1190.834):
-                agents[k].add_fitness(-10)
+            #if(index == 3 and environments[k].position_distance_vector[-1] > 1190.834):
+            #    agents[k].add_fitness(-10)
             observation, reward, terminated, truncated, _ = environments[k].step(index)
 
             done[k] = terminated or truncated
@@ -87,14 +63,6 @@ for t in range(1000):
             if done[k]:
                 print(f"Generation: {t} AI number: {k} Numeber of steps: {c}  Energy: {battery[k]}, Propoltion Left: {prop[k]}, Comms: {comm[k]}, Time: {timeArr[k]}, Reward: {rewards[k]}, Fitness: {agents[k].get_fitness()} \n")
         c += 1
-                #if(battery[k] <= 0):
-                    #print(bcolors.FAIL + bcolors.BOLD + "Out of energy" + bcolors.ENDC)
-                #elif(prop[k] <= 0):
-                    #print(bcolors.FAIL + bcolors.BOLD +"Out of propellant"+ bcolors.ENDC)
-                #elif(comm[k] <= 0):
-                    #print(bcolors.OKGREEN + bcolors.BOLD + "Communication done! Programm ran succesfully"+ bcolors.ENDC)
-                #else:
-                    #print(bcolors.FAIL + bcolors.BOLD +"Time is up!"+ bcolors.ENDC)
 
     agents.sort()
     CurrentLeader = agents[population - 1]
@@ -121,3 +89,10 @@ for t in range(1000):
         rewards[k] = 0
 
     generation += 1
+
+f = open("weights", "x") # create file
+# write best weights to file
+for i in range(len(CurrentLeader.get_weights())):
+    f.write(str(CurrentLeader.get_weights()[i]))
+    f.write("\n")
+f.close()
