@@ -85,7 +85,7 @@ for t in range(1000):
             rewards[k] += reward
 
             if done[k]:
-                print(f"Generation: {t} AI number: {k} Numeber of steps: {c}  Energy: {battery[k]}, Propoltion Left: {prop[k]}, Comms: {comm[k]}, Time: {timeArr[k]}, Reward: {rewards[k]} \n")
+                print(f"Generation: {t} AI number: {k} Numeber of steps: {c}  Energy: {battery[k]}, Propoltion Left: {prop[k]}, Comms: {comm[k]}, Time: {timeArr[k]}, Reward: {rewards[k]}, Fitness: {agents[k].get_fitness()} \n")
         c += 1
                 #if(battery[k] <= 0):
                     #print(bcolors.FAIL + bcolors.BOLD + "Out of energy" + bcolors.ENDC)
