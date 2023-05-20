@@ -6,6 +6,7 @@ from itertools import count
 import os
 import time
 import tensorflow as tf
+import NeuralNetwork as nn
 
 
 population = 100
@@ -14,7 +15,7 @@ threads = population
 
 agents = [None] * population
 environments = [None] * population
-rewards = [None] * population
+rewards = [0.0] * population
 
 battery = [None] * population
 done = [False] * population
@@ -27,17 +28,7 @@ for k in range(population):
     environments[k] = sc.Spacecraft()
     environments[k].reset()
 
-    agents[k] = tf.keras.Sequential([
-        tf.keras.layers.Input(shape=(7,)),
-        tf.keras.layers.Dense(8, activation='relu'),
-        tf.keras.layers.Dense(32, activation='relu'),
-        tf.keras.layers.Dense(8, activation='linear'),
-        tf.keras.layers.Dense(4, activation='softmax')  # give probabilities of each step (4)
-    ])
-    #agents[k].summary()
-
-    agents[k].set_weights([np.random.randn(*w.shape) for w in agents[k].get_weights()])
-    agents[k].compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    agents[k] = nn.NeuralNetwork(np.array([6, 128, 128, 128, 4]))
 
 """
 input parameters:
@@ -65,13 +56,13 @@ for t in range(1000):
             if done[k]:
                 continue
             if(c != 0):
-                listTemp = [environments[k].thrust_vector[-1], environments[k].position_vector_x_com[-1],environments[k].position_vector_y_com[-1],environments[k].data_sent,environments[k].prop_used,environments[k].en_used,environments[k].steps_to_truncate]
+                listTemp = [environments[k].thrust_vector[-1], environments[k].position_distance_vector[-1],environments[k].data_sent,environments[k].prop_used,environments[k].en_used,environments[k].steps_to_truncate]
             else:
-                listTemp = [0, 0, 0, 0, 0, 0, 0]
+                listTemp = [0, 0, 0, 0, 0, 0]
 
-            input_values = np.array([listTemp])
+            input_values = np.array(listTemp)
             #input_values = np.array([[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]])
-            temp = agents[k].predict(input_values, verbose = 0)[0]
+            temp = agents[k].feed_forward(input_values)
             #print("t: ", t, ", k: ", k, ", temp: ", temp)
             # find max prob in array
             max = 0
@@ -80,6 +71,9 @@ for t in range(1000):
                 if temp[i] > max:
                     max = temp[i]
                     index = i
+
+            if(index == 3 and environments[k].position_distance_vector[-1] > 1190.834):
+                agents[k].add_fitness(-10)
             observation, reward, terminated, truncated, _ = environments[k].step(index)
 
             done[k] = terminated or truncated
@@ -87,9 +81,10 @@ for t in range(1000):
             prop[k] = environments[k].propellant_tank.current_mass
             comm[k] = environments[k].DataClass.current_data
             timeArr[k] = environments[k].time_vector[-1]
+            agents[k].add_fitness(reward)
+            rewards[k] += reward
 
             if done[k]:
-                rewards[k] = reward
                 print(f"Generation: {t} AI number: {k} Numeber of steps: {c}  Energy: {battery[k]}, Propoltion Left: {prop[k]}, Comms: {comm[k]}, Time: {timeArr[k]}, Reward: {rewards[k]} \n")
         c += 1
                 #if(battery[k] <= 0):
@@ -101,39 +96,20 @@ for t in range(1000):
                 #else:
                     #print(bcolors.FAIL + bcolors.BOLD +"Time is up!"+ bcolors.ENDC)
 
-    # get indices of the worst performing agents
-    worst = np.argsort(rewards)[:int(population/2)]
-    #print("worst: ", worst)
+    agents.sort()
+    CurrentLeader = agents[population - 1]
+    print("And the winner has: ", CurrentLeader.get_fitness())
+    print("Standardabweichung", np.std(rewards))
+    if(np.std(rewards) < 2):
+        modifier = 0.1
+    else:
+        modifier = 1
 
-    # get indices of the best performing agents
-    best = np.argsort(rewards)[int(population/2):]
-    #print("best: ", best)
+    for i in range(population // 2):
+        agents[i].copy_weights(agents[i + (population // 2)].get_weights())
 
-    # copy weights of the best performing agents to the worst performing agents
-    for i in range(int(population/2)):
-        agents[worst[i]].set_weights(agents[best[i]].get_weights())
+        agents[i].mutate(modifier)
 
-    # mutate all agents by
-    for k in range(population):
-        # iterate through all weights
-        for i in range(len(agents[k].get_weights())):
-            # iterate through all weights in the layer
-            for j in range(len(agents[k].get_weights()[i])):
-                # iterate through all weights in the neuron
-                for l in range(len(agents[k].get_weights()[i][j])):
-                    # get random number between 0 and 1000 (0 - 100%)
-                    rand = np.random.randint(0, 1000)
-                    # 2% chance to inverse one weight
-                    if(rand < 2):
-                        agents[k].get_weights()[i][j][l] *= -1
-                    # 4% chance to add random number between -1 and 1 to one weight
-                    elif(rand < 4):
-                        agents[k].get_weights()[i][j][l] += np.random.uniform(-1, 1)
-                    # 6% chance to pick random number between -1 and 1 as new weight
-                    elif(rand < 6):
-                        agents[k].get_weights()[i][j][l] = np.random.uniform(-1, 1)
-
-    # reset the environments
     for k in range(population):
         environments[k].reset()
         done[k] = False
@@ -141,6 +117,7 @@ for t in range(1000):
         prop[k] = environments[k].propellant_tank.current_mass
         comm[k] = environments[k].DataClass.current_data
         timeArr[k] = environments[k].time_vector[-1]
+        agents[k].set_fitness(0.0)
         rewards[k] = 0
 
     generation += 1
