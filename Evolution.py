@@ -25,16 +25,15 @@ for k in range(population):
     agents[k] = nn.NeuralNetwork(np.array([6, 128, 128, 128, 4]))
 
 for t in range(20):
-    c = 0
 
-    while done.count(True) != population:
-        for k in range(population):
-            if done[k]:
-                continue
-            if(c != 0):
+    for k in range(population):
+        c = False
+        while not done[k]:
+            if(c):
                 listTemp = [environments[k].thrust_vector[-1], environments[k].position_distance_vector[-1],environments[k].data_sent,environments[k].prop_used,environments[k].en_used,environments[k].steps_to_truncate]
             else:
                 listTemp = [0, 0, 0, 0, 0, 0]
+                c = True
 
             input_values = np.array(listTemp)
             #input_values = np.array([[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]])
@@ -61,8 +60,7 @@ for t in range(20):
             rewards[k] += reward
 
             if done[k]:
-                print(f"Generation: {t} AI number: {k} Numeber of steps: {c}  Energy: {battery[k]}, Propoltion Left: {prop[k]}, Comms: {comm[k]}, Time: {timeArr[k]}, Reward: {rewards[k]}, Fitness: {agents[k].get_fitness()} \n")
-        c += 1
+                print(f"Agent: {k} from Gen {t} Reward: {rewards[k]} Comms: {comm[k]}")
 
     agents.sort()
     CurrentLeader = agents[population - 1]
