@@ -29,9 +29,9 @@ for k in range(population):
 
     agents[k] = tf.keras.Sequential([
         tf.keras.layers.Input(shape=(7,)),
+        tf.keras.layers.Dense(8, activation='relu'),
         tf.keras.layers.Dense(32, activation='relu'),
-        tf.keras.layers.Dense(64, activation='relu'),
-        tf.keras.layers.Dense(16, activation='linear'),
+        tf.keras.layers.Dense(8, activation='linear'),
         tf.keras.layers.Dense(4, activation='softmax')  # give probabilities of each step (4)
     ])
     #agents[k].summary()
