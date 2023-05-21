@@ -14,6 +14,9 @@ class NeuralNetwork:
     def get_weights(self):
         return self.weights
 
+    def set_weights(self, weights):
+        self.weights = weights
+
     def init_neurons(self):
         self.neurons = [np.zeros(layer) for layer in self.layers]
 

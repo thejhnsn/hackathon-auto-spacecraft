@@ -270,9 +270,9 @@ class Spacecraft(gym.Env):
         l = len(self.orbit_propagator.positions_com)
 
         if len(self.orbit_propagator.positions_com) < 101:
-            self.renderer.render(self.com_orbit_points, self.obs_orbit_points, self.orbit_propagator.positions_com, self.orbit_propagator.positions_obs, self.comms)
+            self.renderer.render(self.com_orbit_points, self.obs_orbit_points, self.orbit_propagator.positions_com, self.orbit_propagator.positions_obs, self.comms, self.DataClass.current_data, self.battery.current_energy, self.propellant_tank.current_mass, self.time_vector[-1])
         else:
-            self.renderer.render(self.com_orbit_points, self.obs_orbit_points, self.orbit_propagator.positions_com[l-100:l], self.orbit_propagator.positions_obs[l-100:l], self.comms)
+            self.renderer.render(self.com_orbit_points, self.obs_orbit_points, self.orbit_propagator.positions_com[l-100:l], self.orbit_propagator.positions_obs[l-100:l], self.comms, self.DataClass.current_data, self.battery.current_energy, self.propellant_tank.current_mass, self.time_vector[-1])
 
 
 
