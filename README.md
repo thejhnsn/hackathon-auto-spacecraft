@@ -1,4 +1,7 @@
-# hackathon-auto-spacecraft
+# posAIdon
+
+An autonomous Neptune orbiter.
+
 TUM Science Hackathon 2023 - Autonomous Spacecraft Team 1
 
 Requirements:
