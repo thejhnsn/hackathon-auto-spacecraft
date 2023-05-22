@@ -2,6 +2,8 @@
 
 An autonomous Neptune orbiter.
 
+How to run: run Evolution.py
+
 TUM Science Hackathon 2023 - Autonomous Spacecraft Team 1
 
 Requirements:
